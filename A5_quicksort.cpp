@@ -1,10 +1,71 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-long long cmp=0;
-int part(vector<int>&a,int l,int h){int p=a[h],i=l;for(int j=l;j<h;j++)if(cmp++,a[j]<p)swap(a[i++],a[j]);swap(a[i],a[h]);return i;}
-void qs(vector<int>&a,int l,int h,int rnd){if(l>=h)return;if(rnd)swap(a[l+rand()%(h-l+1)],a[h]);
-  int p=part(a,l,h);qs(a,l,p-1,rnd);qs(a,p+1,h,rnd);}
-// Avg O(n log n) both; worst O(n^2): deterministic on sorted input, randomized only with negligible probability
-int main(){srand(time(0));int n;cin>>n;vector<int>a(n);for(auto&x:a)cin>>x;
-  for(int r=0;r<2;r++){auto b=a;cmp=0;qs(b,0,n-1,r);cout<<(r?"Randomized   ":"Deterministic")<<" comparisons: "<<cmp<<" | ";
-    for(int x:b)cout<<x<<" ";cout<<"\n";}}
+
+long long comparisons = 0;
+
+// Lomuto partition: last element is the pivot
+int partition(vector<int> &a, int low, int high) {
+    int pivot = a[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        comparisons++;
+        if (a[j] < pivot) {
+            i++;
+            swap(a[i], a[j]);
+        }
+    }
+    swap(a[i + 1], a[high]);
+    return i + 1;
+}
+
+// Deterministic: always uses last element as pivot
+void quickSort(vector<int> &a, int low, int high) {
+    if (low < high) {
+        int p = partition(a, low, high);
+        quickSort(a, low, p - 1);
+        quickSort(a, p + 1, high);
+    }
+}
+
+// Randomized: pick random pivot, move it to the end, then partition
+void randomizedQuickSort(vector<int> &a, int low, int high) {
+    if (low < high) {
+        int r = low + rand() % (high - low + 1);
+        swap(a[r], a[high]);
+        int p = partition(a, low, high);
+        randomizedQuickSort(a, low, p - 1);
+        randomizedQuickSort(a, p + 1, high);
+    }
+}
+
+void print(vector<int> &a) {
+    for (int x : a) cout << x << " ";
+    cout << "\n";
+}
+
+int main() {
+    srand(time(0));
+    int n;
+    cout << "Enter n: ";
+    cin >> n;
+    vector<int> arr(n);
+    cout << "Enter elements: ";
+    for (int &x : arr) cin >> x;
+
+    vector<int> a = arr;
+    comparisons = 0;
+    quickSort(a, 0, n - 1);
+    cout << "Deterministic: "; print(a);
+    cout << "Comparisons: " << comparisons << "\n\n";
+
+    vector<int> b = arr;
+    comparisons = 0;
+    randomizedQuickSort(b, 0, n - 1);
+    cout << "Randomized: "; print(b);
+    cout << "Comparisons: " << comparisons << "\n";
+}
+/*
+Deterministic: Best/Avg O(n log n), Worst O(n^2) (already sorted input)
+Randomized:    Expected O(n log n) for any input; worst case O(n^2) is very unlikely
+Space: O(log n) recursion stack on average
+*/
